@@ -1,11 +1,12 @@
-name: 'StackOverflow_assessment'
+name: 'so_assessment'
 version: '1.0'
 config-version: 2
 
+# In dbt Cloud, environment connection is used; 'profile' is ignored.
 profile: 'so_assessment'
 
 model-paths: ['models']
-tests-paths: ['tests']
+test-paths: ['tests']         # <- fix aici (test-paths, nu tests-paths
 seed-paths: ['seeds']
 macro-paths: ['macros']
 analysis-paths: ['analysis']
@@ -14,4 +15,4 @@ models:
   so_assessment:
     +materialized: view
     marts:
-      +materialized: table 
+      +materialized: table
