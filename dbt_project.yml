@@ -1,0 +1,17 @@
+name: 'StackOverflow_assessment'
+version: '1.0'
+config-version: 2
+
+profile: 'so_assessment'
+
+model-paths: ['models']
+tests-paths: ['tests']
+seed-paths: ['seeds']
+macro-paths: ['macros']
+analysis-paths: ['analysis']
+
+models:
+  so_assessment:
+    +materialized: view
+    marts:
+      +materialized: table 

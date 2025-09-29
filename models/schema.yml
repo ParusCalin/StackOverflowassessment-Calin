@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg_questions
+    description: "Standardized questions (one row per question)."
+    columns:
+      - name: question_id
+        tests: [not_null, unique]
+      - name: asked_at
+        tests: [not_null]
+
+  - name: stg_answers
+    description: "Standardized answers (one row per answer)."
+    columns:
+      - name: answer_id
+        tests: [not_null, unique]
+      - name: question_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_questions')
+              field: question_id
+
+  - name: stg_bridge_question_tag
+    description: "Many-to-many link between questions and each tag."
+    columns:
+      - name: question_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_questions')
+              field: question_id
+      - name: tag
+        tests: [not_null]
+
+  - name: dim_tag
+    description: "Conformed tag dimension (unique tags)."
+    columns:
+      - name: tag
+        tests: [not_null]
+
+  - name: fact_question_lifecycle
+    description: "Per-question lifecycle and KPIs (TTF, accepted, flags)."
+    columns:
+      - name: question_id
+        tests: [not_null, unique]
+      - name: asked_at
+        tests: [not_null]
+
+  - name: topic_health_daily
+    description: "Daily-by-tag aggregates for dashboarding."
+    columns:
+      - name: date_day
+        tests: [not_null]
+      - name: tag
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_tag')
+              field: tag

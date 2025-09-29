@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: so
+    database: "{{ target.project }}"
+    schema: "Stack_Overflow_assessment"
+    tables:
+      - name: questions_raw
+      - name: answers_raw
+      - name: bridge_question_tag
+      - name: dim_date
