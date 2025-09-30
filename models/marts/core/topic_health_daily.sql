@@ -1,27 +1,37 @@
 {{ config(
-    materialized='table',
-    partition_by = { 'field': 'date_day', 'data_type': 'date' },
-    cluster_by = ['tag']
+  materialized='table',
+  partition_by = { 'field': 'date_day', 'data_type': 'date' },
+  cluster_by = ['tag']
 ) }}
 
 with
-l as (select * from {{ ref('fact_question_lifecycle') }}),
-b as (select * from {{ ref('stg_bridge_question_tag') }}),
 q as (
   select
     question_id,
     date(asked_at) as date_day
   from {{ ref('stg_questions') }}
+  where asked_at is not null
+),
+b as (
+  select
+    question_id,
+    tag
+  from {{ ref('stg_bridge_question_tag') }}
+  where tag is not null and trim(tag) <> ''
+),
+l as (
+  select *
+  from {{ ref('fact_question_lifecycle') }}
 )
 
 select
   q.date_day,
   b.tag,
   count(*) as questions_asked,
-  sum(l.is_unanswered) as questions_unanswered,          -- zero answers
-  sum(l.is_unaccepted) as questions_unaccepted,          -- no accepted answer
-  safe_divide(sum(l.is_unanswered), count(*)) as unanswered_rate,
-  safe_divide(sum(l.is_unaccepted), count(*)) as unaccepted_rate,
+  sum(case when l.is_unanswered = 1 then 1 else 0 end) as questions_unanswered,
+  sum(case when l.is_unaccepted = 1 then 1 else 0 end) as questions_unaccepted,
+  safe_divide(sum(case when l.is_unanswered = 1 then 1 else 0 end), count(*)) as unanswered_rate,
+  safe_divide(sum(case when l.is_unaccepted = 1 then 1 else 0 end), count(*)) as unaccepted_rate,
   approx_quantiles(l.hours_to_first_answer, 100)[offset(50)] as p50_ttf_hours,
   sum(case
         when l.accepted_at is null
@@ -34,6 +44,6 @@ select
     count(*)
   ) as not_accepted_within_7d_rate
 from q
-join l using (question_id)
-join b using (question_id)
+join b using (question_id)      -- trebuie tag
+left join l using (question_id) -- lifecycle poate lipsi
 group by 1,2
