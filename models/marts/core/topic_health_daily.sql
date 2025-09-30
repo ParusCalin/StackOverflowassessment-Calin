@@ -1,22 +1,16 @@
 {{ config(
-  materialized='table',
-  schema='dbt_cparus',
-  partition_by = { 'field': 'date_day', 'data_type': 'date' },
-  cluster_by = ['tag']
+  materialized='view',
+  schema='dbt_cparus'
 ) }}
 
 with
 q as (
-  select
-    question_id,
-    date(asked_at) as date_day
+  select question_id, date(asked_at) as date_day
   from {{ ref('stg_questions') }}
   where asked_at is not null
 ),
 b as (
-  select
-    question_id,
-    tag
+  select question_id, tag
   from {{ ref('stg_bridge_question_tag') }}
   where tag is not null and trim(tag) <> ''
 ),
@@ -45,6 +39,6 @@ select
     count(*)
   ) as not_accepted_within_7d_rate
 from q
-join b using (question_id)      -- fără tag nu are sens, deci INNER
-left join l using (question_id) -- lifecycle poate lipsi
+join b using (question_id)        -- tag obligatoriu
+left join l using (question_id)   -- lifecycle poate lipsi
 group by 1,2
