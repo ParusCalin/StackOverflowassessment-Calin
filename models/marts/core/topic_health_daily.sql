@@ -1,5 +1,6 @@
 {{ config(
   materialized='table',
+  schema='dbt_cparus',
   partition_by = { 'field': 'date_day', 'data_type': 'date' },
   cluster_by = ['tag']
 ) }}
@@ -44,6 +45,6 @@ select
     count(*)
   ) as not_accepted_within_7d_rate
 from q
-join b using (question_id)      -- trebuie tag
+join b using (question_id)      -- fără tag nu are sens, deci INNER
 left join l using (question_id) -- lifecycle poate lipsi
 group by 1,2
